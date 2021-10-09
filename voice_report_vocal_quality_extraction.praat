@@ -5,7 +5,7 @@
 # last update 6/7/21
 # speech rate measures done separately
 
-form Enter path to files and save path 
+form Enter path to files and save path
 	comment the path to the wav files you choose to extract info from
 	text Enter_path_to_file Downloads/nationwide speech project/short_clips/
 	comment the name and path to the file where you save extract feature info
@@ -28,12 +28,14 @@ for ifile to numberOfFiles
 	fileName$ = Get string: ifile
 	Read from file: enter_path_to_file$ + fileName$
 	name$ = selected$ ("Sound")
+	sound_obj = selected("Sound")
 
 	## get intensity measures
 	To Intensity... 50 0.0 yes
 
 	## select the intensity object and get values
 	select Intensity 'name$'
+	int_obj = selected("Intensity")
 	int_min = Get minimum... 0.0 0.0 Parabolic
 	int_max = Get maximum... 0.0 0.0 Parabolic
 	int_range = int_max - int_min
@@ -42,35 +44,42 @@ for ifile to numberOfFiles
 
 	select Sound 'name$'
 	To PointProcess (periodic, cc)... 50 450
+	pp_obj = selected("PointProcess")
 	select Sound 'name$'
 	To Pitch... 0.0 50 450
+	pitch_obj = selected("Pitch")
 	select Sound 'name$'
 	plus Pitch 'name$'
 	plus PointProcess 'name$'
 
 	# enter values for voice report
-	# Voice report... start_time end_time min_pitch max_pitch max_period_factor max_amplitude_factor 
+	# Voice report... start_time end_time min_pitch max_pitch max_period_factor max_amplitude_factor
 	vr$ = Voice report... 0.0 0.0 50 450 1.3 1.6 0.03 0.45
 
 	# get jitter and shimmer
 	jitter = extractNumber (vr$, "Jitter (local): ")
 	shimmer = extractNumber (vr$, "Shimmer (local): ")
-	
+
 	# get hnr
 	hnr = extractNumber (vr$, "Mean harmonics-to-noise ratio: ")
-	
+
 	# get f0 values
 	f0_mean = extractNumber (vr$, "Mean pitch: ")
 	f0_median = extractNumber (vr$, "Median pitch: ")
 	f0_max = extractNumber (vr$, "Maximum pitch: ")
 	f0_min = extractNumber (vr$, "Minimum pitch: ")
 	f0_range = f0_max - f0_min
-	
+
+	# remove objects from praat
+	select 'sound_obj'
+  plus 'int_obj'
+  plus 'pp_obj'
+  plus 'pitch_obj'
+	Remove
+
 	# add these values to the file of features
 	results$ = "'name$''tab$''jitter''tab$''shimmer''tab$''hnr''tab$''f0_mean''tab$''f0_median''tab$''f0_range''tab$''f0_max''tab$''f0_min''tab$''int_mean''tab$''int_median''tab$''int_range''newline$'"
 	echo 'results$'
 	fileappend "'Save_name_and_path$'" 'results$'
-	
+
 endfor
-
-
